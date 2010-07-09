@@ -104,7 +104,7 @@ namespace SimSistemaColasSinPrioridadAdquirida
         }
         private Double generarIT()//           1/λ
         {
-            lambdaBuena=9.9;
+            lambdaBuena=5;
        //     Double diferencia = lambdaBuena / 10;
             Double rand = 0;// (r.Next(0,9999999)/10000000.0);
              rand = (r.NextDouble());
@@ -113,7 +113,7 @@ namespace SimSistemaColasSinPrioridadAdquirida
                // rand = 0.0000001;
                 MessageBox.Show("alto");
             }*/
-            Double valor = (Math.Log(rand) / (lambdaBuena * -1)) ;
+            Double valor = (Math.Log(rand,2.732) / (lambdaBuena * -1)) ;
             return valor;
            /* if(rand<10){
                 return 1;
