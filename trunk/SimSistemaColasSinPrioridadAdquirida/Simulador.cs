@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -21,12 +22,15 @@ namespace SimSistemaColasSinPrioridadAdquirida
         Reportador reportador;
         public int contadorEventos;
         Queue q = new Queue();
+        Queue colaClientes = new Queue();
+        public List<Cliente> historialClientes;
         public Random r;
         public Estadisticador estadisticador;
         Double mu;
         Double lambdaBuena;
         public Simulador()
         {
+            historialClientes = new List<Cliente>();
             estadisticador = new Estadisticador();
             r = new Random();
             TM = 0;
@@ -54,8 +58,11 @@ namespace SimSistemaColasSinPrioridadAdquirida
                     }
                     else {//Servidor ocupado
                         WL = WL + 1;
+                        
                         clientesColas = clientesColas + 1;
                         q.Enqueue(contadorClientes);
+                        colaClientes.Enqueue(new Cliente(contadorClientes,-1,TM));
+
                     }
                     //Generar IT
                     AT = TM + generarIT();
@@ -69,6 +76,9 @@ namespace SimSistemaColasSinPrioridadAdquirida
                         //Generar ST
                         DT = TM + generarST();
                         escribirNuevoEvento(contadorEventos, "Salida", (int)q.Dequeue(), TM, SS, WL, AT, DT);
+                        Cliente clienteTerminandoCola = (Cliente)colaClientes.Dequeue();
+                        clienteTerminandoCola.setTMFinal(TM);
+                        historialClientes.Add(clienteTerminandoCola);
                     }
                     else {//No hay clientes en cola
                         SS = (int)Servidor.desocupado;
@@ -90,69 +100,47 @@ namespace SimSistemaColasSinPrioridadAdquirida
             rho=lambdaBuena/mu;
             Double FactorEscala=rho;
             //MessageBox.Show("Lq (Discreto): " + totalPersonasCola * (1 + rho) + "\n Lq (continuo):" + (Math.Pow(rho, 2) / (1 - rho)) + "\nRho: " + rho + "\nL (Discreto): " + totalPersonasEnSistema * (1 + rho) + "\n L (Continuo): " + (rho/ (1 - rho)));
-            MessageBox.Show("Lq (Discreto): " + totalPersonasCola  + "\n Lq (continuo):" + (Math.Pow(rho, 2) / (1 - rho)) + "\nRho: " + rho + "\nL (Discreto): " + totalPersonasEnSistema  + "\n L (Continuo): " + (rho / (1 - rho)));
+            Double tiempoPromedioEnCola = calcularTiempoEnCola();
+            Double LqContinuo = (Math.Pow(rho, 2) / (1 - rho));
+            Double WqContinuo = LqContinuo / lambdaBuena;
+            MessageBox.Show("Lq (Discreto): " + totalPersonasCola + "\n Lq (continuo):" + LqContinuo + "\nRho: " + rho + "\nL (Discreto): " + totalPersonasEnSistema + "\n L (Continuo): " + (rho / (1 - rho)) + "\nTiempo promedio en cola (Discreto): " + tiempoPromedioEnCola + "\nTiempo promedio en cola (Continuo): " + WqContinuo);
            // Console.WriteLine("Personas esperadas en cola (Lq): " + totalPersonasCola);
         }
         public void escribirNuevoEvento(int contadorEventos, String tipo, int contadorClientes, Double TM, int SS, int WL, Double AT, Double DT){
-          //  reportador.escribirNuevoEvento(contadorEventos, tipo, contadorClientes, TM, SS, WL, AT, DT);
+            //reportador.escribirNuevoEvento(contadorEventos, tipo, contadorClientes, TM, SS, WL, AT, DT);
             estadisticador.ingresarMinuto(TM, WL, SS);
         }
         private Double generarST(){
-            mu = 10;
+            mu = 100;
             Double ws = 1 / mu;
             return ws;//ws=1/μ
         }
         private Double generarIT()//           1/λ
         {
-            lambdaBuena=5;
+            lambdaBuena=85;
        //     Double diferencia = lambdaBuena / 10;
-            Double rand = 0;// (r.Next(0,9999999)/10000000.0);
-             rand = (r.NextDouble());
-            /*if (rand==0)
+            Double rand =  (r.Next(0,10099000)/10000000.0);
+            //Double rand = (r.Next(0, 10190000) / 10000000.0);
+             //rand = (r.NextDouble());
+            if (rand==0)
             {
-               // rand = 0.0000001;
-                MessageBox.Show("alto");
-            }*/
-            Double valor = (Math.Log(rand,2.732) / (lambdaBuena * -1)) ;
+                rand = 0.000000001;
+               // MessageBox.Show("alto");
+            }
+            //Double valor = (Math.Log(rand,2.745) / (lambdaBuena * -1)) ;
+             Double valor = (Math.Log(rand) / (lambdaBuena * -1));
+            
             return valor;
-           /* if(rand<10){
-                return 1;
-            }
-            else if(rand<20){
-                return 2;
-            }
-            else if(rand<30){
-                return 3;
-            }
-            else if((rand<40)){
-                return 4;
-            }
-            else if ((rand < 50))
+  
+        }
+        public Double calcularTiempoEnCola(){
+            Double tiempoPromedioEnCola = 0;
+            for (int i = 0; i<historialClientes.Count; i++ )
             {
-                return 5;
+                tiempoPromedioEnCola = tiempoPromedioEnCola+historialClientes[i].tiempoEsperaCola;
             }
-            else if ((rand < 60))
-            {
-                return 6;
-            }
-            else if ((rand < 70))
-            {
-                return 7;
-            }
-            else if ((rand < 80))
-            {
-                return 8;
-            }
-            else if ((rand < 90))
-            {
-                return 9;
-            }
-            else if ((rand <100))
-            {
-                return 10;
-            }
-            //tiempo promedio entre llegadas 1/λ=5.5 alpha 2/11=0.1818
-            return -1;*/
+            tiempoPromedioEnCola = tiempoPromedioEnCola / historialClientes.Count;
+            return tiempoPromedioEnCola;
         }
             //Double lambda = 0.4;
             //return (1 / lambda);
