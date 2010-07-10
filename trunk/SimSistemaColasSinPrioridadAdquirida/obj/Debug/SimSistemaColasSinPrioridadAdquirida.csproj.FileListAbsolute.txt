@@ -14,3 +14,11 @@ D:\My Documents\Estudio\UCR\Semestre I - 2010\Investigación de operaciones\Proy
 D:\My Documents\Estudio\UCR\Semestre I - 2010\Investigación de operaciones\Proyecto\repo\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.Form1.resources
 D:\My Documents\Estudio\UCR\Semestre I - 2010\Investigación de operaciones\Proyecto\repo\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.Properties.Resources.resources
 D:\My Documents\Estudio\UCR\Semestre I - 2010\Investigación de operaciones\Proyecto\repo\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.csproj.GenerateResource.Cache
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.exe
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.pdb
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.Form1.resources
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.Properties.Resources.resources
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\obj\Debug\SimSistemaColasSinPrioridadAdquirida.csproj.GenerateResource.Cache
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\bin\Debug\SimSistemaColasSinPrioridadAdquirida.exe
+C:\Users\Ricardo\Documents\ProyectoIO\trunk\SimSistemaColasSinPrioridadAdquirida\bin\Debug\SimSistemaColasSinPrioridadAdquirida.pdb
