@@ -8,12 +8,16 @@ namespace SimSistemaColasSinPrioridadAdquirida
 {
     class Simulador
     {
+        public int tiposClientes; // la cantidad de tipos de clientes diferentes que puede haber en el sistema
         public enum Servidor { desocupado = 0, ocupado=1 };
         public Double TM;// = hora de la simulación
-        public Double AT;// = tiempo programado para la siguiente llegada
-        public Double DT;// = tiempo programada para la siguiente salida
+        //public Double AT;// = tiempo programado para la siguiente llegada
+        public Double [] AT;// = tiempo programado para la siguiente llegada de cada cliente
+        //public Double DT;// = tiempo programada para la siguiente salida
+        public Double [] DT;// = tiempo programada para la siguiente salida de cada cliente
         public int SS;// = estado del empleado (1 = ocupado, O = desocupado)
-        public int WL;// = longitud de la cola de espera
+        //public int WL;// = longitud de la cola de espera
+        public int []WL;// = longitud de la cola de espera de cada cliente
         public int MX;// = longitud, en unidades de tiempo, de una corrida de simulación
         public Double IT;// = Tiempo entre llegadas
         public Double rho;
@@ -30,15 +34,35 @@ namespace SimSistemaColasSinPrioridadAdquirida
         Double lambdaBuena;
         public Simulador()
         {
+            tiposClientes = 3;
             historialClientes = new List<Cliente>();
             estadisticador = new Estadisticador();
             r = new Random();
             TM = 0;
-            AT = 0;
-            DT = 999999;
+
+            //AT = 0; //DESPUES VA A HABER QUE QUITAR ESTE Y DEJAR SOLO LOS OTROS 3
+            AT = new Double[tiposClientes];
+            for (int a = 0; a < (tiposClientes); a++)
+            {
+                AT[a] = 0;
+            }
+
+            //DT = 999999; //DESPUES VA A HABER QUE QUITAR ESTE Y DEJAR SOLO LOS OTROS 3
+            DT = new Double[tiposClientes]; 
+            for(int i = 0; i < (tiposClientes); i++){
+                DT[i] = 999999;
+            }
+
             SS = 0;
-            WL = 0;
-            MX = 100000;
+
+            //WL = 0; //DESPUES VA A HABER QUE QUITAR ESTE Y DEJAR SOLO LOS OTROS 3
+            WL = new int[tiposClientes];
+            for (int b = 0; b < (tiposClientes); b++)
+            {
+                WL[b] = 0;
+            }
+
+            MX = 10;
             IT = 0;
             reportador = new Reportador("reporte1.txt");
         }
@@ -46,76 +70,113 @@ namespace SimSistemaColasSinPrioridadAdquirida
             
             while(TM<=MX){
                 contadorEventos++;
-                if (AT < DT)//si llega alguien antes que salga el siguiente
+                //if ( AT < DT)//si llega alguien antes que salga el siguiente
+                int ATminimo = calcularMinimo(AT);
+                int DTminimo = calcularMinimo(DT);
+                if ( AT[ATminimo] < DT[DTminimo] )//si llega alguien antes que salga el siguiente
                 {//procesar llegada
                     contadorClientes = contadorClientes + 1;
-                    TM = AT;
+                    TM = AT[ATminimo];
                     if ((int)Servidor.desocupado == SS)
                     {
                         SS = (int)Servidor.ocupado;
                         //Generar ST
-                        DT = TM + generarST();
+                        DT[ATminimo] = TM + generarST();
                     }
                     else {//Servidor ocupado
-                        WL = WL + 1;
+                        WL[ATminimo] = WL[ATminimo] +1;
                         
                         clientesColas = clientesColas + 1;
-                        q.Enqueue(contadorClientes);
-                        colaClientes.Enqueue(new Cliente(contadorClientes,-1,TM));
+//                        q.Enqueue(contadorClientes);
+//                        colaClientes.Enqueue(new Cliente(contadorClientes,-1,TM));
 
                     }
                     //Generar IT
-                    AT = TM + generarIT();
-                    escribirNuevoEvento(contadorEventos, "Llegad", contadorClientes, TM, SS, WL, AT, DT);
+                    AT[ATminimo] = TM + generarIT(ATminimo);
+//                    escribirNuevoEvento(contadorEventos, "Llegad", contadorClientes, TM, SS, ATminimo, ATminimo, ATminimo);
                 }
                 else { //procesar salida
-                    TM = DT;
-                    if (WL > 0)
-                    {//si hay clientes en cola
-                        WL = WL - 1;
+                    //TM = DT;
+                    if (WL[0] > 0)
+                    {//si hay clientes en cola 1
+                        WL[0] = WL[0] - 1;
                         //Generar ST
-                        DT = TM + generarST();
-                        escribirNuevoEvento(contadorEventos, "Salida", (int)q.Dequeue(), TM, SS, WL, AT, DT);
-                        Cliente clienteTerminandoCola = (Cliente)colaClientes.Dequeue();
-                        clienteTerminandoCola.setTMFinal(TM);
-                        historialClientes.Add(clienteTerminandoCola);
+                        DT[0] = TM + generarST();
+//                        escribirNuevoEvento(contadorEventos, "Salida", (int)q.Dequeue(), TM, SS, 0, 0, 0);
+//                        Cliente clienteTerminandoCola = (Cliente)colaClientes.Dequeue();
+//                        clienteTerminandoCola.setTMFinal(TM);
+//                        historialClientes.Add(clienteTerminandoCola);
                     }
-                    else {//No hay clientes en cola
+                    else if (DT[0] == 999999){//No hay clientes en cola 1 pero cliente es tipo 1
                         SS = (int)Servidor.desocupado;
-                        DT = 999999;
-                        escribirNuevoEvento(contadorEventos, "Salida", contadorClientes, TM, SS, WL, AT, DT);
+                        DT[1] = 999999;
+//                        escribirNuevoEvento(contadorEventos, "Salida", contadorClientes, TM, SS, 0, 0, 0);
+                    }
+                    else if (WL[1] > 0)
+                    {//si hay clientes en cola 2
+                        WL[1] = WL[1] - 1;
+                        //Generar ST
+                        DT[1] = TM + generarST();
+//                        escribirNuevoEvento(contadorEventos, "Salida", (int)q.Dequeue(), TM, SS, 1, 1, 1);
+//                        Cliente clienteTerminandoCola = (Cliente)colaClientes.Dequeue();
+//                        clienteTerminandoCola.setTMFinal(TM);
+//                        historialClientes.Add(clienteTerminandoCola);
+                    }
+                    else if (DT[1] == 999999)
+                    {//No hay clientes en cola 1 pero cliente es tipo 1
+                        SS = (int)Servidor.desocupado;
+                        DT[1] = 999999;
+//                        escribirNuevoEvento(contadorEventos, "Salida", contadorClientes, TM, SS, 1, 1, 1);
+                    }
+                    else if (WL[2] > 0)
+                    {//si hay clientes en cola 2
+                        WL[2] = WL[2] - 1;
+                        //Generar ST
+                        DT[2] = TM + generarST();
+//                        escribirNuevoEvento(contadorEventos, "Salida", (int)q.Dequeue(), TM, SS, 2, 2, 2);
+//                        Cliente clienteTerminandoCola = (Cliente)colaClientes.Dequeue();
+//                        clienteTerminandoCola.setTMFinal(TM);
+//                        historialClientes.Add(clienteTerminandoCola);
+                    }
+                    else if (DT[2] == 999999)
+                    {//No hay clientes en cola 1 pero cliente es tipo 1
+                        SS = (int)Servidor.desocupado;
+                        DT[2] = 999999;
+//                        escribirNuevoEvento(contadorEventos, "Salida", contadorClientes, TM, SS, 2, 2, 2);
                     }
                 }
             }
             reportador.close();
-            Double totalPersonasCola=0;
-            Double totalPersonasEnSistema=0;
-            for (int i = 0; i < estadisticador.dominioTiempo.Count; i++ )
-            {
-                totalPersonasCola += estadisticador.dominioTiempo[i].WL;
-                totalPersonasEnSistema += estadisticador.dominioTiempo[i].WL + estadisticador.dominioTiempo[i].SS;
-            }
-            totalPersonasCola = totalPersonasCola / estadisticador.dominioTiempo.Count;
-            totalPersonasEnSistema = totalPersonasEnSistema / estadisticador.dominioTiempo.Count;
-            rho=lambdaBuena/mu;
-            Double FactorEscala=rho;
+//            Double totalPersonasCola=0;
+//            Double totalPersonasEnSistema=0;
+//            for (int i = 0; i < estadisticador.dominioTiempo.Count; i++ )
+//            {
+//                totalPersonasCola += estadisticador.dominioTiempo[i].WL;
+//                totalPersonasEnSistema += estadisticador.dominioTiempo[i].WL + estadisticador.dominioTiempo[i].SS;
+//            }
+//            totalPersonasCola = totalPersonasCola / estadisticador.dominioTiempo.Count;
+//            totalPersonasEnSistema = totalPersonasEnSistema / estadisticador.dominioTiempo.Count;
+//            rho=lambdaBuena/mu;
+//            Double FactorEscala=rho;
             //MessageBox.Show("Lq (Discreto): " + totalPersonasCola * (1 + rho) + "\n Lq (continuo):" + (Math.Pow(rho, 2) / (1 - rho)) + "\nRho: " + rho + "\nL (Discreto): " + totalPersonasEnSistema * (1 + rho) + "\n L (Continuo): " + (rho/ (1 - rho)));
-            Double tiempoPromedioEnCola = calcularTiempoEnCola();
-            Double LqContinuo = (Math.Pow(rho, 2) / (1 - rho));
-            Double WqContinuo = LqContinuo / lambdaBuena;
-            MessageBox.Show("Lq (Discreto): " + totalPersonasCola + "\n Lq (continuo):" + LqContinuo + "\nRho: " + rho + "\nL (Discreto): " + totalPersonasEnSistema + "\n L (Continuo): " + (rho / (1 - rho)) + "\nTiempo promedio en cola (Discreto): " + tiempoPromedioEnCola + "\nTiempo promedio en cola (Continuo): " + WqContinuo);
+//            Double tiempoPromedioEnCola = calcularTiempoEnCola();
+//            Double LqContinuo = (Math.Pow(rho, 2) / (1 - rho));
+//            Double WqContinuo = LqContinuo / lambdaBuena;
+//            MessageBox.Show("Lq (Discreto): " + totalPersonasCola + "\n Lq (continuo):" + LqContinuo + "\nRho: " + rho + "\nL (Discreto): " + totalPersonasEnSistema + "\n L (Continuo): " + (rho / (1 - rho)) + "\nTiempo promedio en cola (Discreto): " + tiempoPromedioEnCola + "\nTiempo promedio en cola (Continuo): " + WqContinuo);
            // Console.WriteLine("Personas esperadas en cola (Lq): " + totalPersonasCola);
         }
-        public void escribirNuevoEvento(int contadorEventos, String tipo, int contadorClientes, Double TM, int SS, int WL, Double AT, Double DT){
-            //reportador.escribirNuevoEvento(contadorEventos, tipo, contadorClientes, TM, SS, WL, AT, DT);
-            estadisticador.ingresarMinuto(TM, WL, SS);
+        public void escribirNuevoEvento(int contadorEventos, String tipo, int contadorClientes, Double TM, int SS, int indiceWL, int indiceAT, int indiceDT){
+            //reportador.escribirNuevoEvento(contadorEventos, tipo, contadorClientes, TM, SS, WL[indiceWL], AT[indiceAT], DT[indiceDT]);
+            estadisticador.ingresarMinuto(TM, WL[0],WL[1],WL[2], SS);
         }
         private Double generarST(){
+            //---------esto va determinado por el usuario (numero de clientes x unidad de tiempo)-----------
             mu = 100;
+            //----------------------------------------------------------------------------------------------
             Double ws = 1 / mu;
             return ws;//ws=1/μ
         }
-        private Double generarIT()//           1/λ
+        private Double generarIT(int indice)//           1/λ
         {
             lambdaBuena=85;
        //     Double diferencia = lambdaBuena / 10;
@@ -144,5 +205,20 @@ namespace SimSistemaColasSinPrioridadAdquirida
         }
             //Double lambda = 0.4;
             //return (1 / lambda);
+
+        private int calcularMinimo(double [] x){
+            int minimo;
+            minimo = -1;
+            if((x[0]<=x[1])&&(x[0]<=x[2])){
+                minimo = 0;
+            }
+            else if ((x[1]<x[0])&&(x[1]<=x[2])){
+                minimo = 1;
+            }
+            else if((x[2]<x[0])&&(x[2]<x[1])){
+                minimo = 2;
+            }
+            return(minimo);
+        }
     }
 }
